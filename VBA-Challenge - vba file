@@ -1,0 +1,165 @@
+Sub MultipleYearStockData_Puzycki()
+
+' Dim the worksheet
+Dim ws As Worksheet
+For Each ws In ThisWorkbook.Worksheets
+ws.Activate
+
+' Set the ticker
+Dim Ticker As String
+
+' Set variables indicating stock volume, open and close dates, yearly change, and percent change
+Dim totalstockvolume As Double
+Dim openticker As Double
+Dim closeticker As Double
+Dim yearlychange As Double
+Dim percentchange As Double
+totalstockvolume = 0
+openticker = 0
+closeticker = 0
+yearlychange = 0
+percentchange = 0
+
+' Keep track of the location for each total stock volume in the summary table
+Dim summarytablerow As Integer
+summarytablerow = 2
+
+' Loop through all total stock volume
+For i = 2 To 760000
+
+    ' Check if we are still within the same ticker, if it is not...
+    If Cells(i - 1, 1).Value <> Cells(i, 1).Value Then
+    
+        ' Set open ticker
+         openticker = Cells(i, 3).Value
+         
+         ' Set ticker total stock volume
+         totalstockvolume = totalstockvolume + Cells(i, 7).Value
+    
+    ' Check if we are still within the same ticker again..
+    ElseIf Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+    
+            'Set the ticker name
+            Ticker = Cells(i, 1).Value
+            
+            ' Set close ticker
+            closeticker = Cells(i, 6).Value
+            
+            ' Set yearly change
+            yearlychange = (closeticker - openticker)
+            
+            ' Set the percent change
+            percentchange = (((closeticker - openticker) / openticker))
+            
+            ' Add to the total stock volume
+            totalstockvolume = totalstockvolume + Cells(i, 7).Value
+            
+            ' Print variables to summary table
+            Range("I" & summarytablerow).Value = Ticker
+            Range("J" & summarytablerow).Value = yearlychange
+            Range("K" & summarytablerow).Value = percentchange
+            Range("L" & summarytablerow).Value = totalstockvolume
+            
+            ' Add one to the summarytablerow
+            summarytablerow = summarytablerow + 1
+            
+            ' Reset open, close, and total stock volume totals
+            openticker = 0
+            closeticker = 0
+            totalstockvolume = 0
+            
+        Else
+            
+            ' Add to the total stock volume
+            totalstockvolume = totalstockvolume + Cells(i, 7).Value
+            
+        End If
+        
+    Next i
+'----------------------------
+' Set the conditional formatting for the Yearly Change and Percent Change columns
+Dim YearRange As Range
+Set YearRange = Range("J:K")
+
+For Each cell In YearRange
+    If cell.Value < 0 Then
+        cell.Interior.ColorIndex = 3
+    ElseIf cell.Value > 0 Then
+        cell.Interior.ColorIndex = 4
+    
+    End If
+    
+Next
+'------------------------------
+' Set the greatest % increase, Greatest & decrease, and greatest total stock volume
+Dim greatestincrease As Double
+Dim greatestdecrease As Double
+Dim greatesttsv As Double
+
+    ' Set the variables for the ranges of yearly change and percent change
+    pcs = Range("K:K")
+    tsvs = Range("L:L")
+    
+        ' Find the minimum and maximum values for yearly and percent change
+       greatestincrease = Application.WorksheetFunction.Max(pcs)
+       greatestdecrease = Application.WorksheetFunction.Min(pcs)
+       greatesttsv = Application.WorksheetFunction.Max(tsvs)
+       
+       ' Set cells for placement of values
+        Cells(2, 17).Value = greatestincrease
+        Cells(3, 17).Value = greatestdecrease
+        Cells(4, 17).Value = greatesttsv
+
+'-------------------------------
+
+' Format percentchange and Value as a percentage
+Range("K:K").NumberFormat = "0.00%"
+Range("Q2:Q3").NumberFormat = "0.00%"
+
+' Set header labels
+Cells(1, 9).Value = "Ticker"
+Cells(1, 10).Value = "Yearly Change"
+Cells(1, 11).Value = "Percent Change"
+Cells(1, 12).Value = "Total Stock Volume"
+Cells(2, 15).Value = "Greatest % Increase"
+Cells(3, 15).Value = "Greatest % Decrease"
+Cells(4, 15).Value = "Greatest Total Volume"
+Cells(1, 16).Value = "Ticker"
+Cells(1, 17).Value = "Value"
+
+' Set header labels to bold
+Range("I1:Q1").Font.Bold = True
+
+' Set header color to transparent
+Range("I1:Q1").Interior.ColorIndex = 0
+
+Next ws
+
+End Sub
+' -------------------------------------------------------------
+Sub TickerLoop():
+
+Dim ws As Worksheet
+For Each ws In ThisWorkbook.Worksheets
+ws.Activate
+
+' Set variable for i
+For i = 2 To 3001
+
+    ' Loop to match greatest increase, decrease, and total stock volume with ticker name
+    If Cells(i, 11).Value = Cells(2, 17).Value Then
+    Cells(2, 16).Value = Cells(i, 9).Value
+
+    ElseIf Cells(i, 11).Value = Cells(3, 17).Value Then
+    Cells(3, 16).Value = Cells(i, 9).Value
+    
+    ElseIf Cells(i, 12).Value = Cells(4, 17).Value Then
+    Cells(4, 16).Value = Cells(i, 9).Value
+
+End If
+
+Next i
+
+Next ws
+
+End Sub
